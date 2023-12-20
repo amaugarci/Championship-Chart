@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <title>Chart.js Visualizations</title> */ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- <link href="./assets/fonts/stylesheet.css" rel="stylesheet" type="text/css" /> -->
+    <style>
+        body {
+            font-family: 'Geogrotesque Cyr', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #151515; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+        .container {
+            max-width: 720px;
+            width: 100%;
+            margin: auto;
+            padding-inline: 0 !important;
+            box-sizing: border-box;
+            /* transform: translateX(-200px); */
+        }
+        header {
+            background: #1c1c1c; /* Slightly lighter header background for contrast */
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 20px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .header {
+            border-bottom: 1px solid #616161;
+            padding-block: .5rem;
+        }
+        .header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .full-width-chart-wrapper {
+            width: 100%; /* Full width of the text area */
+        }
+        .chart-container {
+            max-width: 1200px; /* Adjust as per the size of your chart */
+            width: 100%;
+            height: 400px;
+            display: grid;
+            grid-template-columns: auto 240px;
+            gap: 16px;
+            margin-block: 8px;
+        }
+        @media screen and (max-width: 820px) {
+        .chart-container {
+            max-width: 1200px; /* Adjust as per the size of your chart */
+            width: 100%;
+            height: 400px;
+            display: grid;
+            grid-template-columns: auto;
+            gap: 16px;
+            margin-block: 8px;
+        }
+        }
+        .chart-wrapper {
+            width: 100%;
+        }
+        .legend-wrapper {
+            font-size: small;
+            border-left: solid 1px #616161;
+            width: 100%;
+            min-height: 300px;
+            height: 100%;
+            flex: none;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .legend-item.active {
+            opacity: 1;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .filter-container {
+            font-size: small;
+            display: grid;
+            grid-template-columns: auto 240px;
+            gap: 1rem;
+            color: #bdbdbd;
+        }
+        @media screen and (max-width: 820px) {
+            .filter-container {
+                display: grid;
+                grid-template-columns: auto;
+                gap: 0;
+                color: #bdbdbd;
+            }
+        }
+        .filter-container > .filter-by {
+            height: 42px;
+            border-bottom: 1px solid #616161;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-container .select {
+            height: 42px;
+            border-bottom: 1px solid #616161;
+            width: 100%;
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+        }
+        .filter-container .select .top5 {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            color: #bdbdbd;
+        }
+        .filter-container .select .top5:hover {
+            color: #00B0FF;
+            border-bottom: solid 2px #00B0FF;
+        }
+        .filter-container .select .top5.active {
+            border-bottom: solid 2px #00B0FF;
+            color: #00B0FF;
+        }
+        .filter-container .select .clear-selection {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            user-select: none;
+            color: #bdbdbd;
+        }
+        .filter-container .select .clear-selection:hover {
+            color: white;
+        }
+
+        .form-group {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+            font-size: small !important;
+        }
+        .form-control {
+            display: flex !important;
+            align-items: center !important;
+            gap: .5rem !important;
+            font-size: small !important;
+        }
+        .form-control label {
+            font-size: small !important;
+            font-weight: normal;
+        }
+        .form-control > input[type="radio"] {
+            margin: 0;
+            font-size: small !important;
+            content: "" !important;
+            width: 10px !important;
+            height: 10px !important;
+            border-radius: 50% !important;
+            outline-offset: .125rem !important;
+            outline: solid .125rem #00B0FF !important;
+            padding: 0;
+            color: #00B0FF;
+            background: transparent;
+            border-radius: 9999px;
+        }
+        .form-control > input[type="radio"]:checked {
+            background-color: #00B0FF !important;
+            outline-offset: .125rem !important;
+            outline: solid .125rem #00B0FF !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    <header>
+        <h1>Chart.js Visualizations Dashboard</h1>
+    </header>
+    -->
+    <div class="container">
+        <!-- <h2>Line Chart Visualization</h2> -->
+        <div class="header">
+            <h3>2023 Championship Tour Rankings</h3>
+        </div>
+        <div class="filter-container">
+            <div class="filter-by">
+                <span class="filter-comment">Ranking after each tour event</span>
+                <div class="form-group">
+                    <div class="form-control">
+                        <input type="radio" class="form-radio" name="filter" value="surfer" id="by-surfer" />
+                        <label for="by-surfer">By Surfer</label>
+                    </div>
+                    <div class="form-control">
+                        <input type="radio" class="form-radio" name="filter" value="country" id="by-country" checked />
+                        <label for="by-country">By Country</label>
+                    </div>
+                </div>
+            </div>
+            <div class="select">
+                <div id="top5" class="top5">
+                    Top5
+                </div>
+                <div id="clear-selection" class="clear-selection">
+                    <span style="font-size: large;">&times;</span>
+                    <span style="font-size: small;">Clear Selections</span>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div id="legend" class="legend-wrapper"></div>
+        </div>
+    </div>
+
+    <script>
+        const surfers = [
+            { "Surfer Name": "John John Florence", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/80257dd2cdbeb8caf66ed7204990a3cf.png?&x=48&y=48&icq=74&sig=e484515d50bac97ac7efc0d73146db90", "Very Large": 15.37, "Large": 15.00, "Medium": 14.04, "Small": 14.28, "Very Small": 13.74 },
+            { "Surfer Name": "Gabriel Medina", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/af30c97af3633f5ca696e82b4641950c.png?&x=48&y=48&icq=74&sig=aebe3983d21653fbc0a5e3d839fdee13", "Very Large": 14.45, "Large": 13.67, "Medium": 13.50, "Small": 14.03, "Very Small": 13.81 },
+            { "Surfer Name": "Kelly Slater", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/6f6925e532406a51f7a312246cad25c8.png?&x=48&y=48&icq=74&sig=b0373acda9fd89228ff621cc2854bcb1", "Very Large": 13.19, "Large": 13.01, "Medium": 12.74, "Small": 13.23, "Very Small": 13.31 },
+            { "Surfer Name": "Jordy Smith", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/57d1c8a2faebb02eac61eae0a5398c50.png?&x=48&y=48&icq=74&sig=c892760bc33347c715943fc467f32e5d", "Very Large": 11.85, "Large": 13.23, "Medium": 12.90, "Small": 12.52, "Very Small": 13.70 },
+            { "Surfer Name": "Miguel Pupo", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/e997ff3ad67008849e2a7d7fc2a6ce5b.png?&x=48&y=48&icq=74&sig=60501dc5df031d35e2e46fe89b70ca68", "Very Large": 9.27, "Large": 11.10, "Medium": 11.03, "Small": 11.55, "Very Small": 12.33 },
+            { "Surfer Name": "Caio Ibelli", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/f04ae1ece3bb3f95af3cec15cc905412.png?&x=48&y=48&icq=74&sig=8fdc23539fabeaea81059c08f041f9c3", "Very Large": 10.97, "Large": 11.81, "Medium": 10.66, "Small": 11.58, "Very Small": 10.70 },
+            { "Surfer Name": "Frederico Morais", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/e46ae006b54d8fe33b9c2317849d90c9.png?&x=48&y=48&icq=74&sig=5d148c91f6643ef1996a927fc676d5df", "Very Large": 9.73, "Large": 11.71, "Medium": 10.41, "Small": 12.13, "Very Small": 12.91 },
+            { "Surfer Name": "Filipe Toledo", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/df0e4ed5b034388501b911e338930d7e.png?&x=48&y=48&icq=74&sig=1f559d45d9747ae6e8c68c827f5192bb", "Very Large": 11.12, "Large": 13.15, "Medium": 13.18, "Small": 13.72, "Very Small": 14.26 },
+            { "Surfer Name": "Italo Ferreira", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/2ec5712acbea62f3c06f73c5be5e8776.png?&x=48&y=48&icq=74&sig=018b1c053a44c094095e139ed140ec28", "Very Large": 11.81, "Large": 13.11, "Medium": 13.41, "Small": 13.35, "Very Small": 13.53 },
+            { "Surfer Name": "Ryan Callinan", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/86ab5a33ee3193a589022c550f99d09e.png?&x=48&y=48&icq=74&sig=d04908cc441fc8b0f49b718963170471", "Very Large": 11.21, "Large": 10.45, "Medium": 10.78, "Small": 12.66, "Very Small": 11.34 },
+            { "Surfer Name": "Ian Gentil", "Country": "us", "Avatar": "https://d3qf8nvav5av0u.cloudfront.net/image/b0bb1b834dbfac3154ca6220af4ff9c6.png?&x=48&y=48&icq=74&sig=d2addd7efd1846b28a65fda4dc1a5125", "Very Large": null, "Large": null, "Medium": 4.6, "Small": null, "Very Small": null }
+        ];
+
+        // Process data for Chart.js
+        const labels = ["Very Large", "Large", "Medium", "Small", "Very Small"];
+        const metaLabels = ["Country", "Avatar"];
+        const colors = ['#32BEBE', '#FF6B6B', '#FFD166', '#97C1A9', '#5A9EC9', '#7D7D7D'];
+        const hoverColors = ['#1E9A9A', '#FF5050', '#FFC133', '#76A18C', '#4682B4', '#636363'];
+
+        let activeLegends = [0, 1, 2, 3, 4];
+
+        // Function to convert hex color to RGBA
+        function hexToRGBA(hex, opacity) {
+            let r = parseInt(hex.slice(1, 3), 16),
+                g = parseInt(hex.slice(3, 5), 16),
+                b = parseInt(hex.slice(5, 7), 16);
+
+            if (opacity) {
+                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            }
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Create the datasets (with the corrected color conversion)
+        const datasets = surfers.map((surfer, index) => ({
+            label: surfer["Surfer Name"],
+            data: labels.map(label => surfer[label] || 0), // Replace null values with 0
+            meta: {...surfer},
+            fill: false,
+            borderColor: index < 5 ? hexToRGBA(colors[index % colors.length], 1) : '#636363', // Set to #636363 for surfers not in the top 5
+            backgroundColor: index < 5 ? hexToRGBA(colors[index % colors.length], 0.5) : '#636363', // Same for background color
+            borderWidth: 4,
+            hoverBorderColor: index < 5 ? hexToRGBA(hoverColors[index % hoverColors.length], 1) : '#636363', // Same for hover border color
+            hoverBorderWidth: 3,
+            hidden: index >= 5, // Hide datasets for surfers not in the top 5 initially
+            tension: 0.4
+        }));
+
+        // Chart.js configuration (added responsive: true)
+        const config = {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true, // Add this for responsiveness
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        suggestedMax: 16,
+                        suggestedMin: 10
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        // Add your tooltip options here
+                    },
+                },
+            }
+        };
+
+        // Function to change the opacity of a color
+        function changeOpacity(color, opacity) {
+            const rgba = color.replace(/[^,]+(?=\))/, opacity);
+            return rgba;
+        }
+
+        // Create the chart
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, config);
+
+        // Function for creating new Legend Item
+        function createLegendItem({rank, avatar, country, name, backgroundColor}) {
+            return `
+                <span style="width: 30px;">${rank + 1}.</span>
+                <div style="background-color: ${backgroundColor}; background-image: url(${avatar}); background-position: center; background-size: cover; width: 24px; height: 24px; border-radius: 9999px;"></div>
+                <img src="https://flagcdn.com/w20/${country}.png" srcset="https://flagcdn.com/w40/${country}.png 2x" width="20" alt="${country}" />
+                <span>${name}</span>
+            `
+        }
+
+        // Initialize Active Legends
+        function initActiveLegends() {
+            activeLegends = [0, 1, 2, 3, 4];
+            updateTop5Select();
+        }
+        // Update Top5 Select Button
+        function updateTop5Select() {
+            const top5Elem = document.getElementById("top5");
+            if (activeLegends.length == 5) {
+                let isTop5 = true;
+                for (let i = 0; i < activeLegends.length; i++) if (!activeLegends.includes(i)) isTop5 = false;
+                if (isTop5 === true) {
+                    top5Elem.classList.add("active");
+                    return;
+                }
+            }
+            if (top5Elem.classList.contains("active")) top5Elem.classList.remove("active");
+        }
+        // Check if the legend is activated or deactivated
+        function isActiveLegend(i) {
+            return activeLegends.includes(i);
+        }
+        // Activate legend by index
+        function activateLegend(i) {
+            const newActiveLegends = [...activeLegends, i];
+            activeLegends = newActiveLegends;
+            updateTop5Select();
+        }
+        // Deactivate legend by index
+        function deactivateLegend(i) {
+            const newActiveLegends = activeLegends.filter((_val) => _val !== i);
+            activeLegends = newActiveLegends;
+            updateTop5Select();
+        }
+        function updateLegendItem(item, active) {
+            if (active == true) item.classList.add("active");
+            else if (item.classList.contains("active")) item.classList.remove("active");
+        }
+
+        // CustomLegend class with added click functionality
+        class CustomLegend {
+            constructor(chart, legendItems) {
+                this.chart = chart;
+                this.legendItems = legendItems;
+            }
+
+            // Function to create the legend
+            createLegend() {
+                const legendContainer = document.getElementById('legend');
+                this.legendItems.forEach((item, index) => {
+                    const legendItem = document.createElement('div');
+                    legendItem.classList.add('legend-item');
+                    updateLegendItem(legendItem, isActiveLegend(index));
+                    legendItem.innerHTML = createLegendItem({
+                        rank: index,
+                        avatar: item.meta.Avatar,
+                        backgroundColor: item.borderColor,
+                        country: item.meta.Country,
+                        name: item.label
+                    })
+
+                    legendItem.addEventListener('mouseover', () => this.handleHover(index));
+                    legendItem.addEventListener('mouseout', () => this.handleMouseOut());
+                    legendItem.addEventListener('click', () => this.handleClick(index, legendItem));
+                    legendItem.addEventListener('mouseup', () => this.handleMouseUp(index, legendItem));
+                    legendContainer.appendChild(legendItem);
+                });
+            }
+
+            // Function to handle the hover event
+            handleHover(index) {
+                const legendItems = document.getElementById('legend').children;
+                for (let i = 0; i < this.legendItems.length; i++) {
+                    const opacity = i === index ? 1 : 0.3;
+                    this.chart.data.datasets[i].borderColor = changeOpacity(this.chart.data.datasets[i].borderColor, opacity);
+                    updateLegendItem(legendItems[i], i === index);
+                }
+                this.chart.update();
+            }
+
+            // Function to handle the mouseout event
+            handleMouseOut() {
+                const legendItems = document.getElementById('legend').children;
+                for (let i = 0; i < this.legendItems.length; i++) {
+                    this.chart.data.datasets[i].borderColor = changeOpacity(this.chart.data.datasets[i].borderColor, 1);
+                    updateLegendItem(legendItems[i], isActiveLegend(i));
+                }
+                this.chart.update();
+            }
+
+            // Function to handle the click event
+            handleClick(index, legendItem) {
+                const meta = this.chart.getDatasetMeta(index);
+                meta.hidden = isActiveLegend(index) ? true : false;
+                if (meta.hidden == true) {
+                    deactivateLegend(index);
+                } else {
+                    activateLegend(index);
+                }
+                updateLegendItem(legendItem, !meta.hidden);
+                this.chart.update();
+            }
+
+            // Function to handle the click up event
+            handleMouseUp(index, legendItem) {
+                this.handleMouseOut();
+                this.chart.update();
+            }
+
+            handleUpdate() {
+                const elems = document.querySelectorAll(".legend-wrapper .legend-item");
+                for (let i = 0; i < datasets.length; i++) {
+                    if (activeLegends.includes(i)) {
+                        this.chart.show(i);
+                        updateLegendItem(elems[i], true);
+                    } else {
+                        this.chart.hide(i);
+                        updateLegendItem(elems[i], false);
+                    }
+                }
+                this.chart.update();
+            }
+        }
+
+        // Create a new custom legend
+        const customLegend = new CustomLegend(myChart, myChart.data.datasets);
+        customLegend.createLegend();
+
+        initActiveLegends();
+
+        document.getElementById("top5").addEventListener("click", (e) => {
+            initActiveLegends();
+            customLegend.handleUpdate();
+        })
+
+        document.getElementById("clear-selection").addEventListener("click", (e) => {
+            activeLegends = [];
+            updateTop5Select();
+            customLegend.handleUpdate();
+        })
+    </script>
+</body>
+</html>
