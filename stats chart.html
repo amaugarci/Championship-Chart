@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Geogrotesque Cyr', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #151515; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+        .container {
+            max-width: 720px;
+            width: 100%;
+            margin: auto;
+            padding-inline: 0 !important;
+            box-sizing: border-box;
+            /* transform: translateX(-200px); */
+        }
+        header {
+            background: #050101; /* Slightly lighter header background for contrast */
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 20px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .header {
+            border-bottom: 1px solid #616161;
+            padding-block: .5rem;
+        }
+        .header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .full-width-chart-wrapper {
+            width: 100%; /* Full width of the text area */
+        }
+        .chart-container {
+            max-width: 1200px; /* Adjust as per the size of your chart */
+            width: 100%;
+            height: 400px;
+            display: grid;
+            grid-template-columns: auto 240px;
+            gap: 16px;
+            margin-block: 8px;
+        }
+        @media screen and (max-width: 820px) {
+        .chart-container {
+            max-width: 1200px; /* Adjust as per the size of your chart */
+            width: 100%;
+            height: 400px;
+            display: grid;
+            grid-template-columns: auto;
+            gap: 16px;
+            margin-block: 8px;
+        }
+        }
+        .chart-wrapper {
+            width: 100%;
+        }
+        .legend-wrapper {
+            font-size: small;
+            border-left: solid 1px #616161;
+            width: 100%;
+            min-height: 300px;
+            height: 100%;
+            flex: none;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .legend-item.active {
+            opacity: 1;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .filter-container {
+            font-size: small;
+            display: grid;
+            grid-template-columns: auto 240px;
+            gap: 1rem;
+            color: #bdbdbd;
+        }
+        @media screen and (max-width: 820px) {
+            .filter-container {
+                display: grid;
+                grid-template-columns: auto;
+                gap: 0;
+                color: #bdbdbd;
+            }
+        }
+        .filter-container > .filter-by {
+            height: 42px;
+            border-bottom: 1px solid #616161;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-container .select {
+            height: 42px;
+            border-bottom: 1px solid #616161;
+            width: 100%;
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+        }
+        .filter-container .select .top5 {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            color: #bdbdbd;
+        }
+        .filter-container .select .top5:hover {
+            color: #00B0FF;
+            border-bottom: solid 2px #00B0FF;
+        }
+        .filter-container .select .top5.active {
+            border-bottom: solid 2px #00B0FF;
+            color: #00B0FF;
+        }
+        .filter-container .select .clear-selection {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            user-select: none;
+            color: #bdbdbd;
+        }
+        .filter-container .select .clear-selection:hover {
+            color: white;
+        }
+
+        .form-group {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+            font-size: small !important;
+        }
+        .form-control {
+            display: flex !important;
+            align-items: center !important;
+            gap: .5rem !important;
+            font-size: small !important;
+        }
+        .form-control label {
+            font-size: small !important;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .form-control > input[type="radio"] {
+            margin: 0;
+            font-size: small !important;
+            content: "" !important;
+            width: 10px !important;
+            height: 10px !important;
+            border-radius: 50% !important;
+            /*outline-offset: .125rem !important;
+            outline: solid .125rem #00B0FF !important;*/
+            padding: 0;
+            color: #00B0FF;
+            background: transparent;
+            border-radius: 9999px;
+            cursor: pointer;
+        }
+        .form-control > input[type="radio"]:checked {
+            background-color: #00B0FF !important;
+            /*outline-offset: .125rem !important;
+            outline: solid .125rem #00B0FF !important;*/
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    <header>
+        <h1>Chart.js Visualizations Dashboard</h1>
+    </header>
+    -->
+    <div class="container">
+      <div class="chart-wrapper">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+
+    <script type="module">
+      const data = {
+        labels: [
+          'Average Heat Score',
+          'Heat Win %',
+          'Best Wave Score',
+          'Event Appearances',
+          'Final Appearances'
+        ],
+        datasets: [
+          {
+            label: 'Ian Gentil',
+            data: [8.04, 25, 6.50, 2, 0], // Ian's stats for the selected metrics
+            fill: true,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgb(255, 99, 132)',
+            pointBackgroundColor: 'rgb(255, 99, 132)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(255, 99, 132)'
+          },
+          {
+            label: 'Italo Ferreira',
+            data: [10.23, 63, 8.83, 8, 1], // Italo's stats for the selected metrics
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            pointBackgroundColor: 'rgb(54, 162, 235)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(54, 162, 235)'
+          }
+        ]
+      };
+
+      const config = {
+        type: 'radar',
+        data: data,
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Stats Chart'
+            }
+          },
+          pointDot:false,
+          showTooltips: false,
+          scaleOverride: true,
+          scaleSteps: 4,
+          scaleStepWidth: 5,
+          scaleStartValue: 0
+        },
+      }
+
+      // Create the chart
+      const ctx = document.getElementById('myChart').getContext('2d');
+      let myChart = new Chart(ctx, config);
+    </script>
+</body>
+</html>

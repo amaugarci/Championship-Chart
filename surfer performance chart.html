@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <h2>Surfer Performance Chart</h2>
+  
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Geogrotesque Cyr', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #151515; /* Dark background */
+            color: #ffffff; /* Light text */
+        }
+        .container {
+            max-width: 720px;
+            width: 100%;
+            margin: auto;
+            padding-inline: 0 !important;
+            box-sizing: border-box;
+            /* transform: translateX(-200px); */
+        }
+        header {
+            background: #050101; /* Slightly lighter header background for contrast */
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 20px 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .header {
+            border-bottom: 1px solid #616161;
+            padding-block: .5rem;
+        }
+        .header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .full-width-chart-wrapper {
+            width: 100%; /* Full width of the text area */
+        }
+        .chart-container {
+            max-width: 1200px; /* Adjust as per the size of your chart */
+            width: 100%;
+            height: 400px;
+            display: grid;
+            grid-template-columns: auto 240px;
+            gap: 16px;
+            margin-block: 8px;
+        }
+        @media screen and (max-width: 820px) {
+        .chart-container {
+            max-width: 1200px; /* Adjust as per the size of your chart */
+            width: 100%;
+            height: 400px;
+            display: grid;
+            grid-template-columns: auto;
+            gap: 16px;
+            margin-block: 8px;
+        }
+        }
+        .chart-wrapper {
+            width: 100%;
+        }
+        .legend-wrapper {
+            font-size: small;
+            border-left: solid 1px #616161;
+            width: 100%;
+            min-height: 300px;
+            height: 100%;
+            flex: none;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .legend-item.active {
+            opacity: 1;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .filter-container {
+            font-size: small;
+            display: grid;
+            grid-template-columns: auto 240px;
+            gap: 1rem;
+            color: #bdbdbd;
+        }
+        @media screen and (max-width: 820px) {
+            .filter-container {
+                display: grid;
+                grid-template-columns: auto;
+                gap: 0;
+                color: #bdbdbd;
+            }
+        }
+        .filter-container > .filter-by {
+            height: 42px;
+            border-bottom: 1px solid #616161;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-container .select {
+            height: 42px;
+            border-bottom: 1px solid #616161;
+            width: 100%;
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+        }
+        .filter-container .select .top5 {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            color: #bdbdbd;
+        }
+        .filter-container .select .top5:hover {
+            color: #00B0FF;
+            border-bottom: solid 2px #00B0FF;
+        }
+        .filter-container .select .top5.active {
+            border-bottom: solid 2px #00B0FF;
+            color: #00B0FF;
+        }
+        .filter-container .select .clear-selection {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            user-select: none;
+            color: #bdbdbd;
+        }
+        .filter-container .select .clear-selection:hover {
+            color: white;
+        }
+
+        .form-group {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+            font-size: small !important;
+        }
+        .form-control {
+            display: flex !important;
+            align-items: center !important;
+            gap: .5rem !important;
+            font-size: small !important;
+        }
+        .form-control label {
+            font-size: small !important;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .form-control > input[type="radio"] {
+            margin: 0;
+            font-size: small !important;
+            content: "" !important;
+            width: 10px !important;
+            height: 10px !important;
+            border-radius: 50% !important;
+            /*outline-offset: .125rem !important;
+            outline: solid .125rem #00B0FF !important;*/
+            padding: 0;
+            color: #00B0FF;
+            background: transparent;
+            border-radius: 9999px;
+            cursor: pointer;
+        }
+        .form-control > input[type="radio"]:checked {
+            background-color: #00B0FF !important;
+            /*outline-offset: .125rem !important;
+            outline: solid .125rem #00B0FF !important;*/
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    <header>
+        <h1>Chart.js Visualizations Dashboard</h1>
+    </header>
+    -->
+    <div class="container">
+        <!-- <h2>Line Chart Visualization</h2> -->
+        <div class="header">
+            <h3>2024 Mens Championship Tour</h3>
+        </div>
+        <div class="filter-container">
+            <div class="filter-by">
+                <span class="filter-comment">Average Wave Score by Wave Size</span>
+                <div class="form-group">
+                    <div class="form-control">
+                        <input type="radio" class="form-radio" name="filter" value="surfer" id="by-surfer" checked />
+                        <label for="by-surfer">By Surfer</label>
+                    </div>
+                    <div class="form-control">
+                        <input type="radio" class="form-radio" name="filter" value="country" id="by-country" />
+                        <label for="by-country">By Country</label>
+                    </div>
+                </div>
+            </div>
+            <div class="select">
+                <div id="top5" class="top5">
+                    Top5
+                </div>
+                <div id="clear-selection" class="clear-selection">
+                    <span style="font-size: large;">&times;</span>
+                    <span style="font-size: small;">Clear Selections</span>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div id="legend" class="legend-wrapper"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import iso31661 from 'https://cdn.jsdelivr.net/npm/iso-3166-1@2.1.1/+esm'
+        import iso31662 from 'https://cdn.jsdelivr.net/npm/iso-3166-2@1.0.0/+esm'
+        const surferJsonData = [
+            {"athlete_id":199,"Nickname":"John John Florence","Nation":"HAW","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/430a0cb0217be1798376efa5fe96998d.png?&x=48&y=48&icq=74&sig=92994d2eea5fd5251b9cf2539c838684","flag_id_url":"us-hi","Small Avg Score":12.5296969697,"Small Heat Count":33,"Medium Avg Score":13.8793617021,"Medium Heat Count":47,"Large Avg Score":14.7388461538,"Large Heat Count":26},
+            {"athlete_id":3442,"Nickname":"Jack Robinson","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/b28faeb9d651e7db1a4bdec4825ae7b0.png?&x=48&y=48&icq=74&sig=730238bfad2a49dee1a5db68e0e96c04","flag_id_url":"au","Small Avg Score":11.0639130435,"Small Heat Count":23,"Medium Avg Score":13.2761702128,"Medium Heat Count":47,"Large Avg Score":14.3996428571,"Large Heat Count":28},
+            {"athlete_id":1085,"Nickname":"Gabriel Medina","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/8a17743f5828d7d0834cb66e71cfe145.png?&x=48&y=48&icq=74&sig=0cd411c36239133091dd1bab4b090db1","flag_id_url":"br","Small Avg Score":12.9942105263,"Small Heat Count":57,"Medium Avg Score":13.1140789474,"Medium Heat Count":76,"Large Avg Score":14.3066666667,"Large Heat Count":30},{"athlete_id":9167,"Nickname":"Joao Chianca","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/06c176fb53b471de7a01d8842e7717c4.png?&x=48&y=48&icq=74&sig=8cdf039e37b1ea47675ad0a35d4d4d2d","flag_id_url":"br","Small Avg Score":11.4716666667,"Small Heat Count":6,"Medium Avg Score":12.8277777778,"Medium Heat Count":36,"Large Avg Score":13.38125,"Large Heat Count":8},{"athlete_id":3962,"Nickname":"Barron Mamiya","Nation":"HAW","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/098a7bbccc6452dd86e350f36b4fca3c.png?&x=48&y=48&icq=74&sig=43e8c22544d92d1cfa497f7903a69573","flag_id_url":"us-hi","Small Avg Score":10.582,"Small Heat Count":5,"Medium Avg Score":10.6725,"Medium Heat Count":40,"Large Avg Score":12.8338461538,"Large Heat Count":13},{"athlete_id":4133,"Nickname":"Ethan Ewing","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/7d66bd9f0158a16254346e356b0bfb10.png?&x=48&y=48&icq=74&sig=1c097d7ed8ae2edb64f3abc5f1550c2b","flag_id_url":"au","Small Avg Score":12.4059090909,"Small Heat Count":22,"Medium Avg Score":13.6326086957,"Medium Heat Count":46,"Large Avg Score":12.728,"Large Heat Count":25},{"athlete_id":564,"Nickname":"Jordy Smith","Nation":"RSA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/b78ab329025c6f4da336ad3c8581755e.png?&x=48&y=48&icq=74&sig=2bd1ab410c3f27bb549c229bef420d11","flag_id_url":"za","Small Avg Score":11.6623529412,"Small Heat Count":51,"Medium Avg Score":11.9296825397,"Medium Heat Count":63,"Large Avg Score":12.3143589744,"Large Heat Count":39},{"athlete_id":553,"Nickname":"Kelly Slater","Nation":"USA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/536c48fbf12a1702fd3cda434c915dfb.png?&x=48&y=48&icq=74&sig=e50a16be12644d4910379b1438f040e0","flag_id_url":"us","Small Avg Score":10.7677272727,"Small Heat Count":22,"Medium Avg Score":10.5952083333,"Medium Heat Count":48,"Large Avg Score":12.2267857143,"Large Heat Count":28},{"athlete_id":1737,"Nickname":"Italo Ferreira","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/dac44074557db61f35463f0cfac6d1df.png?&x=48&y=48&icq=74&sig=ccc97fcbd94963dcf4973e3de8ee032d","flag_id_url":"br","Small Avg Score":13.8517647059,"Small Heat Count":68,"Medium Avg Score":13.1055384615,"Medium Heat Count":65,"Large Avg Score":12.0209756098,"Large Heat Count":41},{"athlete_id":3165,"Nickname":"Griffin Colapinto","Nation":"USA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/aa49ef28a77c0b2411928b26ce2112eb.png?&x=48&y=48&icq=74&sig=d757f15225a3403723218474cde59a17","flag_id_url":"us","Small Avg Score":12.2886956522,"Small Heat Count":46,"Medium Avg Score":12.42453125,"Medium Heat Count":64,"Large Avg Score":11.9717647059,"Large Heat Count":34},{"athlete_id":3047,"Nickname":"Jacob Willcox","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/62d742edd6ec2a36158a197c76e0a878.png?&x=48&y=48&icq=74&sig=8284757e3630e4cb720d79c0b655687d","flag_id_url":"au","Small Avg Score":11.308,"Small Heat Count":5,"Medium Avg Score":12.3566666667,"Medium Heat Count":6,"Large Avg Score":11.8271428571,"Large Heat Count":7},{"athlete_id":3955,"Nickname":"Seth Moniz","Nation":"HAW","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/09dbe7de242a83794a246cacef64adb8.png?&x=48&y=48&icq=74&sig=23dc4bfa4538d4ecea51103579447d55","flag_id_url":"us-hi","Small Avg Score":10.9703571429,"Small Heat Count":28,"Medium Avg Score":9.3477142857,"Medium Heat Count":35,"Large Avg Score":11.575625,"Large Heat Count":32},{"athlete_id":1456,"Nickname":"Filipe Toledo","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/6e8a4ddaadfa6d8034887217779b620a.png?&x=48&y=48&icq=74&sig=b4a0e9efa5924305bb0004dbd1e254cb","flag_id_url":"br","Small Avg Score":13.6278787879,"Small Heat Count":66,"Medium Avg Score":13.7086746988,"Medium Heat Count":83,"Large Avg Score":11.5737837838,"Large Heat Count":37},{"athlete_id":3737,"Nickname":"Matthew McGillivray","Nation":"RSA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/a5d7fe366c3bdb010b0e5c0a39c3c7ee.png?&x=48&y=48&icq=74&sig=d90676638d8b297cbd97a1fd0d2381d2","flag_id_url":"za","Small Avg Score":10.5315789474,"Small Heat Count":19,"Medium Avg Score":10.485625,"Medium Heat Count":32,"Large Avg Score":11.5067857143,"Large Heat Count":28},{"athlete_id":2838,"Nickname":"Connor O'Leary","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/2e782e58a42dc1751c5037ab5b433465.png?&x=48&y=48&icq=74&sig=ff6e7b26a52690b0fa9be450d5cbddc2","flag_id_url":"au","Small Avg Score":11.037,"Small Heat Count":30,"Medium Avg Score":11.4235555556,"Medium Heat Count":45,"Large Avg Score":11.4911111111,"Large Heat Count":27},{"athlete_id":8784,"Nickname":"Samuel Pupo","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/4dc92948283f8feb84de7ff821175bb2.png?&x=48&y=48&icq=74&sig=2d7cba79bad3ba9f70b3ff7e513a1e21","flag_id_url":"br","Small Avg Score":10.174,"Small Heat Count":5,"Medium Avg Score":10.9475862069,"Medium Heat Count":29,"Large Avg Score":11.4073333333,"Large Heat Count":15},{"athlete_id":1760,"Nickname":"Ryan Callinan","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/e93ca5d966ed0d6ab6c872a6bac6fbc1.png?&x=48&y=48&icq=74&sig=0ddf2019873aa5a2bee681cc96c7b5c7","flag_id_url":"au","Small Avg Score":12.2790909091,"Small Heat Count":33,"Medium Avg Score":11.0560869565,"Medium Heat Count":46,"Large Avg Score":11.3088888889,"Large Heat Count":27},{"athlete_id":1291,"Nickname":"Caio Ibelli","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/2b0f460c8b3ba45b0ef4d354cce291a6.png?&x=48&y=48&icq=74&sig=8e11bf178d4cf0a9eede46b22b027125","flag_id_url":"br","Small Avg Score":10.4594871795,"Small Heat Count":39,"Medium Avg Score":10.4538095238,"Medium Heat Count":42,"Large Avg Score":11.1555555556,"Large Heat Count":36},{"athlete_id":3994,"Nickname":"Yago Dora","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/b58042b0b531a6f39a286850f3ef6697.png?&x=48&y=48&icq=74&sig=2ea13b97618c7d57398b8f5548b35272","flag_id_url":"br","Small Avg Score":11.4234146341,"Small Heat Count":41,"Medium Avg Score":11.3822,"Medium Heat Count":50,"Large Avg Score":11.1196666667,"Large Heat Count":30},{"athlete_id":3896,"Nickname":"Kanoa Igarashi","Nation":"JPN","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/29ac0aaddcd4d4fd2275b4b66c0d4913.png?&x=48&y=48&icq=74&sig=53b6eef37866a5693ff1f1d0b5b83b72","flag_id_url":"jp","Small Avg Score":11.4037037037,"Small Heat Count":54,"Medium Avg Score":12.0395238095,"Medium Heat Count":63,"Large Avg Score":11.0694444444,"Large Heat Count":36},{"athlete_id":688,"Nickname":"Miguel Pupo","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/089010f48401c309fe0e477adc33bfdd.png?&x=48&y=48&icq=74&sig=a1ddde21f0bc63247376bbc7f61ae7dd","flag_id_url":"br","Small Avg Score":10.00125,"Small Heat Count":16,"Medium Avg Score":10.4456666667,"Medium Heat Count":30,"Large Avg Score":10.8460714286,"Large Heat Count":28},{"athlete_id":2656,"Nickname":"Leonardo Fioravanti","Nation":"ITA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/46ac0c34b4c57b6dcd1b3ab4fe01bce7.png?&x=48&y=48&icq=74&sig=d3c9b0f0daf69de7f5f367d80c301209","flag_id_url":"it","Small Avg Score":10.6634782609,"Small Heat Count":23,"Medium Avg Score":11.4330952381,"Medium Heat Count":42,"Large Avg Score":10.7090909091,"Large Heat Count":22},{"athlete_id":4491,"Nickname":"Imaikalani deVault","Nation":"HAW","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/b04b36d21a71c25d615fc22a3c45316b.png?&x=48&y=48&icq=74&sig=54fb611dcc846d70a82f4a548d75df39","flag_id_url":"us-hi","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":7.3177777778,"Medium Heat Count":9,"Large Avg Score":9.59875,"Large Heat Count":8},{"athlete_id":2760,"Nickname":"Deivid Silva","Nation":"BRA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/e73930c63ba81577df87ec7ac91ca7be.png?&x=48&y=48&icq=74&sig=0175847f4d8f36628e3adf807f8b69e9","flag_id_url":"br","Small Avg Score":10.6675,"Small Heat Count":20,"Medium Avg Score":11.7092857143,"Medium Heat Count":14,"Large Avg Score":9.4496153846,"Large Heat Count":26},{"athlete_id":1343,"Nickname":"Frederico Morais","Nation":"POR","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/ad2a540d36d6ee1f8cb638d4b5438749.png?&x=48&y=48&icq=74&sig=9b7b2a1ca3b7ab52d8495a9cc19c2431","flag_id_url":"pt","Small Avg Score":11.515,"Small Heat Count":34,"Medium Avg Score":9.8544,"Medium Heat Count":25,"Large Avg Score":9.3104166667,"Large Heat Count":24},{"athlete_id":9654,"Nickname":"Callum Robson","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/89c9124e0c52cbdd595f6313a39eae5f.png?&x=48&y=48&icq=74&sig=dff9498886b0f10138906f5202a9fa9a","flag_id_url":"au","Small Avg Score":9.93,"Small Heat Count":6,"Medium Avg Score":10.617027027,"Medium Heat Count":37,"Large Avg Score":9.209375,"Large Heat Count":16},{"athlete_id":3122,"Nickname":"Jake Marshall","Nation":"USA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/855828a4d26e5f03a2d929733898c6c9.png?&x=48&y=48&icq=74&sig=5ae2f8ef0ff1a39867a0e4a522cf88c4","flag_id_url":"us","Small Avg Score":8.8485714286,"Small Heat Count":7,"Medium Avg Score":9.8161111111,"Medium Heat Count":18,"Large Avg Score":8.6842857143,"Large Heat Count":14},{"athlete_id":2618,"Nickname":"Ian Gentil","Nation":"HAW","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/dbed663e187d0830722b3c6daafb514b.png?&x=48&y=48&icq=74&sig=25a261ca9144c4886dbbbc6ad19f4b21","flag_id_url":"us-hi","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":11.1731034483,"Medium Heat Count":29,"Large Avg Score":0.0,"Large Heat Count":0},{"athlete_id":8905,"Nickname":"Kade Matson","Nation":"USA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/33657f37d76ca6f09d239c569adff1b3.png?&x=48&y=48&icq=74&sig=8574fc9bb6d1aa7b1148e03a567f9ad8","flag_id_url":"us","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":0.0,"Medium Heat Count":0,"Large Avg Score":0.0,"Large Heat Count":0},{"athlete_id":6963,"Nickname":"Liam O'Brien","Nation":"AUS","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/9b248a77b777748421dbdd44688d843d.png?&x=48&y=48&icq=74&sig=798591a1f7ec10fbe119061910b93050","flag_id_url":"au","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":11.3696,"Medium Heat Count":25,"Large Avg Score":0.0,"Large Heat Count":0},{"athlete_id":7012,"Nickname":"Cole Houshmand","Nation":"USA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/951d37d37639fa651362b515f7df2562.png?&x=48&y=48&icq=74&sig=129b52727717077a6b028a011d642cfa","flag_id_url":"us","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":0.0,"Medium Heat Count":0,"Large Avg Score":0.0,"Large Heat Count":0},{"athlete_id":9112,"Nickname":"Rio Waida","Nation":"INA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/fbf35753d3c08021d62e3d77654ff996.png?&x=48&y=48&icq=74&sig=2f470f520356b727a2d6e2cb9521c581","flag_id_url":"id","Small Avg Score":10.4614285714,"Small Heat Count":7,"Medium Avg Score":9.8676,"Medium Heat Count":25,"Large Avg Score":0.0,"Large Heat Count":0},{"athlete_id":9853,"Nickname":"Crosby Colapinto","Nation":"USA","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/21255f4a81fb40225524328dfd4074ac.png?&x=48&y=48&icq=74&sig=9cb7c0d1e71a849261231bcfb41661a1","flag_id_url":"us","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":0.0,"Medium Heat Count":0,"Large Avg Score":0.0,"Large Heat Count":0},{"athlete_id":10786,"Nickname":"Eli Hanneman","Nation":"HAW","headshot_asset_id":"https:\/\/d3qf8nvav5av0u.cloudfront.net\/image\/79369880715fb9ed9b16eedecdbe8c4f.png?&x=48&y=48&icq=74&sig=790894d474acd5cb4e41735e71016c0c","flag_id_url":"us-hi","Small Avg Score":0.0,"Small Heat Count":0,"Medium Avg Score":0.0,"Medium Heat Count":0,"Large Avg Score":0.0,"Large Heat Count":0}]
+
+        const nationJsonData = [{"Nation":"AUS","Large":11.9973880597,"Medium":12.0036904762,"Small":11.5246341463,"flag_id_url":"au"},{"Nation":"BRA","Large":11.6056573705,"Medium":12.3555294118,"Small":12.4257232704,"flag_id_url":"br"},{"Nation":"HAW","Large":12.6235443038,"Medium":11.174382716,"Small":11.7221428571,"flag_id_url":"us-hi"},{"Nation":"ITA","Large":10.7090909091,"Medium":11.4330952381,"Small":10.6634782609,"flag_id_url":"it"},{"Nation":"JPN","Large":11.0694444444,"Medium":12.0395238095,"Small":11.4037037037,"flag_id_url":"jp"},{"Nation":"POR","Large":9.3104166667,"Medium":9.8544,"Small":11.515,"flag_id_url":"pt"},{"Nation":"RSA","Large":11.9768656716,"Medium":11.4432631579,"Small":11.3554285714,"flag_id_url":"za"},{"Nation":"USA","Large":11.4601315789,"Medium":11.2588148148,"Small":11.5053246753,"flag_id_url":"us"}]
+         
+        // Process data for Chart.js
+        const labels = ["Large", "Medium", "Small"];
+        const metaLabels = ["Country", "Avatar"];
+        const colors = ['#32BEBE', '#FF6B6B', '#FFD166', '#97C1A9', '#5A9EC9', '#7D7D7D'];
+        const hoverColors = ['#1E9A9A', '#FF5050', '#FFC133', '#76A18C', '#4682B4', '#636363'];
+
+        let activeLegends = [0, 1, 2, 3, 4];
+
+        /*==================================================    BEGIN CHART CONFIG UTILITY FUNCTIONS    ==================================================*/
+        // Function to convert hex color to RGBA
+        function hexToRGBA(hex, opacity) {
+            let r = parseInt(hex.slice(1, 3), 16),
+                g = parseInt(hex.slice(3, 5), 16),
+                b = parseInt(hex.slice(5, 7), 16);
+
+            if (opacity) {
+                return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            }
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function mapJsonToSurfers(jsonData) {
+            // Sort the jsonData based on 'Large Avg Score' in descending order
+            const newSurfers = jsonData.toSorted((a, b) => b["Large Avg Score"] - a["Large Avg Score"]);
+
+            // Take the top 10 entries
+            const top10 = newSurfers.slice(0, 10);
+
+            // Map the top 10 data to the format required for the chart
+            return top10.map(surfer => {
+                return {
+                    "Surfer Name": surfer.Nickname,
+                    "Country": surfer.flag_id_url,
+                    "Nationality": surfer.Nation,
+                    "Large": surfer["Large Avg Score"],
+                    "Medium": surfer["Medium Avg Score"],
+                    "Small": surfer["Small Avg Score"],
+                    "Avatar": surfer.headshot_asset_id
+                };
+            });
+        }
+
+        function mapJsonToCountries(jsonData) {
+            const compare2String = (string1, string2) => {
+                if (string1 > string2)
+                    return -1;
+                else if (string1 === string2)
+                    return 0;
+                return 1;
+            }
+            // Sort the jsonData based on 'Large Avg Score' in descending order
+            let newCountries = [];
+            jsonData.map((item, i) => {
+                const countryName = item.flag_id_url.includes('-') ? iso31662.subdivision(item.flag_id_url).name : iso31661.whereAlpha2(item.flag_id_url).country;
+                
+                const index = newCountries.findIndex((country) => country['Country Name'] === countryName);
+                if (index > -1) {
+                    const country = newCountries[index];
+                    country['Surfers'].push(item.Nickname);
+                    country['Average Large'] += item['Large Avg Score'];
+                    country['Average Medium'] += item['Medium Avg Score'];
+                    country['Average Small'] += item['Small Avg Score'];
+                } else {
+                    newCountries.push({
+                        "Country Name": countryName,
+                        "Surfers": [item.Nickname],
+                        "Country": item.flag_id_url,
+                        "Nationality": item.Nation,
+                        "Average Large": item["Large Avg Score"],
+                        "Average Medium": item["Medium Avg Score"],
+                        "Average Small": item["Small Avg Score"],
+                        "Avatar": item.headshot_asset_id
+                    });
+                }
+            });
+            
+            newCountries = newCountries.map((country) => ({
+                ...country,
+                'Average Large': country['Average Large'] / country['Surfers'].length,
+                'Average Medium': country['Average Medium'] / country['Surfers'].length,
+                'Average Small': country['Average Small'] / country['Surfers'].length
+            }));
+
+            newCountries.sort((a, b) => b['Average Large'] - a['Average Large'])
+            // const newCountries = jsonData.toSorted((a, b) => compare2String(b["flag_id_url"], a["flag_id_url"]));
+
+            console.log("new countries: ", newCountries);
+            // Take the top 10 entries
+            return newCountries.slice(0, 10);
+        }
+
+        function mapSurfersToDataset (surfers) {
+            return surfers.map((surfer, index) => ({
+                label: surfer["Surfer Name"],
+                data: labels.map(label => surfer[label] || 0), // Replace null values with 0
+                meta: {...surfer},
+                fill: false,
+                borderColor: index < 5 ? hexToRGBA(colors[index % colors.length], 1) : '#636363', // Set to #636363 for surfers not in the top 5
+                backgroundColor: index < 5 ? hexToRGBA(colors[index % colors.length], 0.5) : '#636363', // Same for background color
+                borderWidth: 4,
+                hoverBorderColor: index < 5 ? hexToRGBA(hoverColors[index % hoverColors.length], 1) : '#636363', // Same for hover border color
+                hoverBorderWidth: 3,
+                hidden: index >= 5, // Hide datasets for surfers not in the top 5 initially
+                tension: 0.4
+            }));
+        }
+
+        function mapCountriesToDataset (countries) {
+            return countries.map((country, index) => ({
+                label: country["Country Name"],
+                data: labels.map(label => country[label] || 0), // Replace null values with 0
+                meta: {...country},
+                fill: false,
+                borderColor: index < 5 ? hexToRGBA(colors[index % colors.length], 1) : '#636363', // Set to #636363 for surfers not in the top 5
+                backgroundColor: index < 5 ? hexToRGBA(colors[index % colors.length], 0.5) : '#636363', // Same for background color
+                borderWidth: 4,
+                hoverBorderColor: index < 5 ? hexToRGBA(hoverColors[index % hoverColors.length], 1) : '#636363', // Same for hover border color
+                hoverBorderWidth: 3,
+                hidden: index >= 5, // Hide datasets for surfers not in the top 5 initially
+                tension: 0.4
+            }));
+        }
+
+        function getChartConfigBy (option) {
+            function mapJsonToObjectBy (option) {
+                if (option === 'surfer')
+                    return mapJsonToSurfers(surferJsonData);
+                if (option === 'country')
+                    return mapJsonToCountries(nationJsonData);
+            }
+
+            function mapObjectToDatasetBy (array, option) {
+                if (option === 'surfer')
+                    return mapSurfersToDataset(array);
+                if (option === 'country')
+                    return mapCountriesToDataset(array);
+            }
+
+            if (option === 'surfer')
+                labels = ["Large", "Medium", "Small"];
+            else labels = ["Average Large", "Average Medium", "Average Small"];
+
+            const top10ByOption = mapJsonToObjectBy(option);
+            // Create the datasets (with the corrected color conversion)
+            const datasetByOption = mapObjectToDatasetBy(top10ByOption, option);
+
+            return {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasetByOption
+                },
+                options: {
+                    responsive: true, // Add this for responsiveness
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMax: 16,
+                            suggestedMin: 10
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            // Add your tooltip options here
+                        },
+                    },
+                }
+            };
+        }
+
+        /*==================================================    END CHART CONFIG UTILITY FUNCTIONS    ==================================================*/
+
+
+
+        /*==================================================    BEGIN CHART LEGENDS UTILITY FUNCTIONS    ==================================================*/
+        // Function to change the opacity of a color
+        function changeOpacity(color, opacity) {
+            const rgba = color.replace(/[^,]+(?=\))/, opacity);
+            return rgba;
+        }
+
+        // Function for creating new Legend Item
+        function createLegendItem({category, rank, avatar, country, name, backgroundColor}) {
+            if (category === 'surfer')
+                return `
+                    <span style="width: 30px;">${rank + 1}.</span>
+                    <div style="background-color: ${backgroundColor}; background-image: url(${avatar}); background-position: center; background-size: cover; width: 24px; height: 24px; border-radius: 9999px;"></div>
+                    <img src="https://flagcdn.com/w20/${country}.png" srcset="https://flagcdn.com/w40/${country}.png 2x" width="20" alt="${country}" />
+                    <span>${name}</span>
+                `
+            return `
+                <span style="width: 30px;">${rank + 1}.</span>
+                <img src="https://flagcdn.com/w20/${country}.png" srcset="https://flagcdn.com/w40/${country}.png 2x" width="20" alt="${country}" />
+                <span>${name}</span>
+            `
+        }
+
+        // Initialize Active Legends
+        function initActiveLegends() {
+            activeLegends = [0, 1, 2, 3, 4];
+            updateTop5Select();
+        }
+        // Update Top5 Select Button
+        function updateTop5Select() {
+            const top5Elem = document.getElementById("top5");
+            if (activeLegends.length == 5) {
+                let isTop5 = true;
+                for (let i = 0; i < activeLegends.length; i++) if (!activeLegends.includes(i)) isTop5 = false;
+                if (isTop5 === true) {
+                    top5Elem.classList.add("active");
+                    return;
+                }
+            }
+            if (top5Elem.classList.contains("active")) top5Elem.classList.remove("active");
+        }
+        // Check if the legend is activated or deactivated
+        function isActiveLegend(i) {
+            return activeLegends.includes(i);
+        }
+        // Activate legend by index
+        function activateLegend(i) {
+            const newActiveLegends = [...activeLegends, i];
+            activeLegends = newActiveLegends;
+            updateTop5Select();
+        }
+        // Deactivate legend by index
+        function deactivateLegend(i) {
+            const newActiveLegends = activeLegends.filter((_val) => _val !== i);
+            activeLegends = newActiveLegends;
+            updateTop5Select();
+        }
+        function updateLegendItem(item, active) {
+            if (active == true) item.classList.add("active");
+            else if (item.classList.contains("active")) item.classList.remove("active");
+        }
+
+        /*==================================================    END CHART LEGENDS UTILITY FUNCTIONS    ==================================================*/
+
+        // CustomLegend class with added click functionality
+        class CustomLegend {
+            constructor(chart, legendItems, category) {
+                this.chart = chart;
+                this.legendItems = legendItems;
+                this.category = category;
+            }
+
+            // Function to create the legend
+            createLegend() {
+                const legendContainer = document.getElementById('legend');
+                this.legendItems.forEach((item, index) => {
+                    const legendItem = document.createElement('div');
+                    legendItem.classList.add('legend-item');
+                    updateLegendItem(legendItem, isActiveLegend(index));
+                    legendItem.innerHTML = createLegendItem({
+                        category: this.category,
+                        rank: index,
+                        avatar: item.meta.Avatar,
+                        backgroundColor: item.borderColor,
+                        country: item.meta.Country,
+                        name: item.label
+                    })
+
+                    legendItem.addEventListener('mouseover', () => this.handleHover(index));
+                    legendItem.addEventListener('mouseout', () => this.handleMouseOut());
+                    legendItem.addEventListener('click', () => this.handleClick(index, legendItem));
+                    legendItem.addEventListener('mouseup', () => this.handleMouseUp(index, legendItem));
+                    legendContainer.appendChild(legendItem);
+                });
+            }
+
+            // Function to set the legend
+            setLegends (chart, legendItems, category) {
+                this.chart = chart;
+                this.legendItems = legendItems;
+                this.category = category;
+
+                $('#legend').empty();
+                this.createLegend();
+                initActiveLegends();
+            }
+
+            // Function to handle the hover event
+            handleHover(index) {
+                const legendItems = document.getElementById('legend').children;
+                for (let i = 0; i < this.legendItems.length; i++) {
+                    const opacity = i === index ? 1 : 0.3;
+                    this.chart.data.datasets[i].borderColor = changeOpacity(this.chart.data.datasets[i].borderColor, opacity);
+                    updateLegendItem(legendItems[i], i === index);
+                }
+                this.chart.update();
+            }
+
+            // Function to handle the mouseout event
+            handleMouseOut() {
+                const legendItems = document.getElementById('legend').children;
+                for (let i = 0; i < this.legendItems.length; i++) {
+                    this.chart.data.datasets[i].borderColor = changeOpacity(this.chart.data.datasets[i].borderColor, 1);
+                    updateLegendItem(legendItems[i], isActiveLegend(i));
+                }
+                this.chart.update();
+            }
+
+            // Function to handle the click event
+            handleClick(index, legendItem) {
+                const meta = this.chart.getDatasetMeta(index);
+                meta.hidden = isActiveLegend(index) ? true : false;
+                if (meta.hidden == true) {
+                    deactivateLegend(index);
+                } else {
+                    activateLegend(index);
+                }
+                updateLegendItem(legendItem, !meta.hidden);
+                this.chart.update();
+            }
+
+            // Function to handle the click up event
+            handleMouseUp(index, legendItem) {
+                this.handleMouseOut();
+                this.chart.update();
+            }
+
+            handleUpdate() {
+                const elems = document.querySelectorAll(".legend-wrapper .legend-item");
+                for (let i = 0; i < this.chart.data.datasets.length; i++) {
+                    if (activeLegends.includes(i)) {
+                        this.chart.show(i);
+                        updateLegendItem(elems[i], true);
+                    } else {
+                        this.chart.hide(i);
+                        updateLegendItem(elems[i], false);
+                    }
+                }
+                this.chart.update();
+            }
+        }
+
+        // Chart.js configuration (added responsive: true)
+        let config = getChartConfigBy('surfer');
+
+        // Create the chart
+        const ctx = document.getElementById('myChart').getContext('2d');
+        let myChart = new Chart(ctx, config);
+
+        // Create a new custom legend
+        const customLegend = new CustomLegend(myChart, myChart.data.datasets, 'surfer');
+        customLegend.createLegend();
+
+        initActiveLegends();
+
+        document.getElementById("top5").addEventListener("click", (e) => {
+            initActiveLegends();
+            customLegend.handleUpdate();
+        })
+
+        document.getElementById("clear-selection").addEventListener("click", (e) => {
+            activeLegends = [];
+            updateTop5Select();
+            customLegend.handleUpdate();
+        })
+
+        document.getElementById("by-surfer").addEventListener("change", (e) => {
+            if (e.target.checked) {
+                config = getChartConfigBy('surfer');
+                myChart.data = config.data;
+                myChart.update();
+
+                customLegend.setLegends(myChart, myChart.data.datasets, 'surfer');
+            }
+        })
+
+        document.getElementById("by-country").addEventListener("change", (e) => {
+            if (e.target.checked) {
+                config = getChartConfigBy('country');
+                myChart.data = config.data;
+                myChart.update();
+
+                customLegend.setLegends(myChart, myChart.data.datasets, 'country');
+            }
+        })
+    </script>
+</body>
+  <div>
+    
+  </div>
+</html>
